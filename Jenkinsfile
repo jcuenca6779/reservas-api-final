@@ -1,32 +1,31 @@
 pipeline {
     agent any
-
-    stages {
-        stage('Clonar repositorio') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Compilar proyecto') {
-            steps {
-                bat 'mvn clean compile'
-            }
-        }
-
-        stage('Ejecutar pruebas') {
-            steps {
-                bat 'mvn test'
-            }
-        }
+    
+    tools {
+        maven 'M3' 
     }
 
-    post {
-        success {
-            echo 'Pipeline ejecutado correctamente'
+    stages {
+        stage('Descargar Código') {
+            steps {
+                git branch: 'main', url: 'https://github.com/jcuenca6779/reservas-api-final.git'
+            }
         }
-        failure {
-            echo 'Pipeline falló'
+
+        stage('Compilar y Pruebas') {
+            steps {
+                // Compila y genera el reporte de cobertura JaCoCo usando Maven Wrapper
+                sh './mvnw clean verify'
+            }
+        }
+
+        stage('Análisis SonarQube') {
+            steps {
+                withSonarQubeEnv('SonarServer') {
+                    // Envía el reporte a Sonar usando Maven Wrapper
+                    sh "./mvnw sonar:sonar -Dsonar.projectKey=reservas-api"
+                }
+            }
         }
     }
 }
