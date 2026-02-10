@@ -14,6 +14,8 @@ pipeline {
 
         stage('Compilar y Pruebas') {
             steps {
+                // Dar permisos de ejecución al wrapper de Maven (necesario en agentes Linux)
+                sh 'chmod +x mvnw'
                 // Compila y genera el reporte de cobertura JaCoCo usando Maven Wrapper
                 sh './mvnw clean verify'
             }
@@ -22,7 +24,8 @@ pipeline {
         stage('Análisis SonarQube') {
             steps {
                 withSonarQubeEnv('SonarServer') {
-                    // Envía el reporte a Sonar usando Maven Wrapper
+                    // Asegura permisos de ejecución y envía el reporte a Sonar usando Maven Wrapper
+                    sh 'chmod +x mvnw'
                     sh "./mvnw sonar:sonar -Dsonar.projectKey=reservas-api"
                 }
             }
